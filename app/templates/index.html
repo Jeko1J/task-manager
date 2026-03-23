@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Мои задачи - Менеджер задач{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-list-check me-2"></i>Мои задачи
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card bg-primary text-white">
+                            <div class="stat-number">{{ stats.total }}</div>
+                            <div>Всего задач</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-warning text-dark">
+                            <div class="stat-number">{{ stats.new }}</div>
+                            <div>Новые</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-info text-white">
+                            <div class="stat-number">{{ stats.in_progress }}</div>
+                            <div>В работе</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-success text-white">
+                            <div class="stat-number">{{ stats.completed }}</div>
+                            <div>Выполнены</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="fw-bold mb-2">Фильтр по статусу:</label>
+                    <div>
+                        <a href="/" class="btn btn-sm filter-btn {% if current_status == 'все' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                            Все
+                        </a>
+                        <a href="/?status=новая" class="btn btn-sm filter-btn {% if current_status == 'новая' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                            Новые
+                        </a>
+                        <a href="/?status=в работе" class="btn btn-sm filter-btn {% if current_status == 'в работе' %}btn-info{% else %}btn-outline-info{% endif %}">
+                            В работе
+                        </a>
+                        <a href="/?status=выполнена" class="btn btn-sm filter-btn {% if current_status == 'выполнена' %}btn-success{% else %}btn-outline-success{% endif %}">
+                            Выполнены
+                        </a>
+                    </div>
+                </div>
+
+                {% if tasks %}
+                    <div class="row">
+                        {% for task in tasks %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="task-card card priority-{{ task.priority.value }}">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title mb-0">
+                                                {{ task.title }}
+                                            </h5>
+                                            <span class="badge status-badge 
+                                                {% if task.status.value == 'новая' %}bg-warning
+                                                {% elif task.status.value == 'в работе' %}bg-info
+                                                {% else %}bg-success
+                                                {% endif %}">
+                                                {{ task.status.value }}
+                                            </span>
+                                        </div>
+                                        
+                                        {% if task.description %}
+                                            <p class="card-text text-muted small mt-2">
+                                                {{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}
+                                            </p>
+                                        {% endif %}
+                                        
+                                        <div class="mt-3">
+                                            <span class="badge 
+                                                {% if task.priority.value == 'высокий' %}bg-danger
+                                                {% elif task.priority.value == 'средний' %}bg-warning
+                                                {% else %}bg-success
+                                                {% endif %}">
+                                                <i class="fas fa-flag me-1"></i>{{ task.priority.value }}
+                                            </span>
+                                            
+                                            {% if task.deadline %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="far fa-calendar-alt me-1"></i>
+                                                    {{ task.deadline.strftime('%d.%m.%Y') }}
+                                                </span>
+                                            {% endif %}
+                                            
+                                            <span class="badge bg-light text-dark">
+                                                <i class="far fa-clock me-1"></i>
+                                                {{ task.created_at.strftime('%d.%m.%Y') }}
+                                            </span>
+                                        </div>
+                                        
+                                        <hr>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="/tasks/{{ task.id }}/edit" class="btn btn-outline-primary">
+                                                    <i class="fas fa-edit"></i> Редактировать
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}">
+                                                    <i class="fas fa-trash"></i> Удалить
+                                                </button>
+                                            </div>
+                                            
+                                            <form action="/tasks/{{ task.id }}/change-status" method="post" class="d-inline">
+                                                <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                                                    <option value="новая" {% if task.status.value == 'новая' %}selected{% endif %}>Новая</option>
+                                                    <option value="в работе" {% if task.status.value == 'в работе' %}selected{% endif %}>В работе</option>
+                                                    <option value="выполнена" {% if task.status.value == 'выполнена' %}selected{% endif %}>Выполнена</option>
+                                                </select>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="deleteModal{{ task.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Подтверждение удаления</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Вы уверены, что хотите удалить задачу <strong>"{{ task.title }}"</strong>?</p>
+                                            <p class="text-danger">Это действие невозможно отменить.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                            <form action="/tasks/{{ task.id }}/delete" method="post">
+                                                <button type="submit" class="btn btn-danger">Да, удалить</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-tasks fa-4x text-muted mb-3"></i>
+                        <h4>Нет задач</h4>
+                        <p class="text-muted">Создайте свою первую задачу!</p>
+                        <a href="/tasks/new" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Создать задачу
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

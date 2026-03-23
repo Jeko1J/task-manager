@@ -1,0 +1,37 @@
+# Виртуальное окружение
+venv/
+.venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# База данных
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE (PyCharm)
+.idea/
+.vscode/
+*.iml
+
+# Файлы окружения
+.env
+.env.local
+
+# Логи
+*.log
+*.pid
+
+# OS
+.DS_Store
+Thumbs.db
+
+# При запуске создаются эти папки
+static/
